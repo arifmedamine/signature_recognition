@@ -1,23 +1,13 @@
-# USAGE
-# python classify.py --model pokedex.model --labelbin lb.pickle --image examples/charmander_counter.png
-
 # import the necessary packages
 from keras.preprocessing.image import img_to_array
 from keras.models import load_model
 import numpy as np
-import argparse
-import imutils
 import pickle
 import cv2
 import os
 import flask
-from flask import render_template, request, jsonify
-import pandas as pd
-import traceback
+from flask import request, jsonify
 from werkzeug import secure_filename
-import sys
-from skimage import io
-from PIL import Image
 
 # initialize our Flask application and the Keras model
 app = flask.Flask(__name__)
@@ -44,14 +34,15 @@ def predict():
         idx = np.argmax(proba)
         label = my_lb.classes_[idx]
         filename = f_name[f_name.rfind(os.path.sep) + 1:]
-        correct = "correct" if filename.rfind(label) != -1 else "correct"
-        label = "{}: {:.2f}% ({})".format(label, proba[idx] * 100, correct)
+        if proba[idx] < 0.8:
+            label = "{}: {:.2f}% ({})".format(label, proba[idx] * 100, " Incorrect signature or considered forged..., try again")
+        else:
+            label = "{}: {:.2f}% ({})".format(label, proba[idx] * 100, "Correct Matching")
 
-        result = "[INFO] {}".format(label)
+        result = "{}".format(label)
+        res = jsonify(result)
 
-        print(f'Image predicted as: {result}')
-
-        return f'Image predicted as: {result}'
+        return res
 
 if __name__ == "__main__":
     app.run()
