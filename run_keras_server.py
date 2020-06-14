@@ -44,6 +44,29 @@ def predict():
 
         return res
 
+@app.route("/registersign", methods=["POST"])
+def uploads_sign():
+    if flask.request.method == "POST":
+        userID = request.args.get('userID')
+        UPLOAD_FOLDER = "dset/"+userID
+        app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+        os.mkdir(UPLOAD_FOLDER)
+        if 'files[]' not in request.files:
+            resp = jsonify({'message': 'No images in the request'})
+            resp.status_code = 400
+            return resp
+        files = request.files.getlist('files[]')
+        # errors = {}
+        # success = False
+
+        for file in files:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            # success = True
+        res = jsonify({'message': 'Signature images successfully uploaded'})
+
+        return res
+
 if __name__ == "__main__":
     app.run()
 
